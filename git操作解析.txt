@@ -1,0 +1,20 @@
+一般先在远程创建项目；
+在本地创建文件目录
+git init 初始化一个git仓库
+如果远程断已经有了文件，先clone到本地
+	git clone https://github.com/xxxxxxx/xxxxx.git克隆到本地
+  或者：$ git pull origin master
+编辑文件
+git add . （将所有文件和改动添加到暂存区）
+git commit -m "提交说明"
+然后
+ git remote add origin https://github.com/Walkerant/datasciencecoursera
+最后
+$ git push origin master
+
+git reset HEAD 命令用于取消已缓存（add）的内容。
+git rm 会将条目从缓存区中移除。这与 git reset HEAD 将条目取消缓存是有区别的。 "取消缓存"的意思就是将缓存区恢复为我们做出修改之前的样子。
+默认情况下，git rm file 会将文件从缓存区和你的硬盘中（工作目录）删除。
+如果你要在工作目录中留着该文件，可以使用 git rm --cached：
+
+
