@@ -1,4 +1,8 @@
-﻿# R Code from Walker
+﻿# Codes from Coursera
 
-several months ago I learn some R data analysis course from Coursera.Now I hava forgetten most of it,but I want write some words in git.
+Coursera上学习过的课程的代码
+## 课程列表
+1. Data Science 专项课程
+2. Machine Learning
+3. Programming Languages
 

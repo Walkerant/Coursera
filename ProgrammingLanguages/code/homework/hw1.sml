@@ -126,42 +126,13 @@ fun date_to_string (date : int*int*int) =
 	
 (* question 8 *)
 fun number_before_reaching_sum (sum : int, xs : int list) =
-    let fun sum_head (n : int) =
-	    let fun sum (ys : int list, y : int) =
-		    if y=0
-		    then 0
-		    else hd(ys) + sum(tl(ys),y-1)
-	    in
-		sum(xs,n)
-	    end
-    in
-	let fun judge (i : int) =
-		if sum_head(i) <= sum andalso sum_head(i+1) > sum
-		then i
-		else judge(i+1)
-	in
-	    judge(1)
-	end
-    end
-
+    if sum <= hd xs
+    then 0
+    else 1 + number_before_reaching_sum(sum - hd xs, tl xs)
+				   
 (* question 9 *)
 fun what_month (days : int) =
-    if days < 1 andalso days > 365
-    then 0
-    else
-	if days = 365
-	then 12
-	else
-	    let val month = number_before_reaching_sum(days,0::days_of_months)
-	    in
-		if month=1
-		then month
-		else
-		    if  days = days_head_months(month-1)
-		    then month-1
-		    else month
-	    end
-	    
+    1 + number_before_reaching_sum(days, days_of_months)
 
 (* question 10 *)
 fun month_range (day1 : int, day2 : int) =
