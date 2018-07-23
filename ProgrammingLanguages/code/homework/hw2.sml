@@ -94,21 +94,14 @@ fun card_value card =
 
 (* function 2.c *)
 fun remove_card (cs, c, e) =
-    let fun has_card (cs, c) =
+    let fun aux cs =
 	    case cs of
-		[] => false
-	      | x::xs => if x = c then true else has_card(xs, c)
+		[] => raise e
+	      | x::xs => if x = c then xs else x :: aux xs
     in
-	if has_card(cs, c)
-	then let fun aux(cs, c, acc) =
-		     case cs of
-			 [] => reverse(acc)
-		       | x::xs => if x = c then (reverse(acc) @ xs) else aux(xs, c, x::acc)
-	     in
-		 aux(cs, c, [])
-	     end
-	else raise e
+	aux cs
     end
+	
 	
 (* function 2.d *)
 fun all_same_color cards =
@@ -143,3 +136,20 @@ fun score (cards, goal) =
     end
 	
 (* function 2.g *)
+fun officiate (cards,plays,goal) =
+    let 
+        fun loop (current_cards,cards_left,plays_left) =
+            case plays_left of
+                [] => score(current_cards,goal)
+              | (Discard c)::tail => 
+                loop (remove_card(current_cards,c,IllegalMove),cards_left,tail)
+              | Draw::tail =>
+                (* note: must score immediately if go over goal! *)
+                case cards_left of
+                    [] => score(current_cards,goal)
+                  | c::rest => if sum_cards (c::current_cards) > goal
+                               then score(c::current_cards,goal)
+                               else loop (c::current_cards,rest,tail)
+    in 
+        loop ([],cards,plays)
+    end
