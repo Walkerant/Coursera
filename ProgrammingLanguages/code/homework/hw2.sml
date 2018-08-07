@@ -16,16 +16,15 @@ fun reverse lst =
     end
     
 (* question 1.a *)
-fun all_except_option (s, sl) =
-    if exist_in_list(s,sl)
-    then let fun all_except(sl) =
-		 case sl of
-		     [] => []
-		   | x::xs => if same_string(s,x) then all_except(xs) else x::all_except(xs)
-	 in
-	     SOME(all_except(sl))
-	 end
-    else NONE
+fun all_except_option (s, xs) =
+    case xs of
+	[] => NONE
+      | x::xs' => if same_string(s,x)
+		  then SOME xs'
+		  else case all_except_option(s,xs') of
+			   NONE => NONE
+			 | SOME y => SOME(x::y)
+					 
 
 (* question 1.b *)
 fun get_substitutions1 (sl, s) =
