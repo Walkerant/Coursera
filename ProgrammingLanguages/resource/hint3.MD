@@ -1,0 +1,18 @@
+# Notes on the material
+* Functions are values, they can be stored in pairs, in lists, passed as arguments to functions, returned as values from functions, etc.
+* Anonymous-function syntax is very useful for passing functions or returning functions.
+* In the absense of recursion issues, \verb|fun f x = e|funfx=e is the same as \verb|val f = fn x => e|valf=fnx=>e (but the former is preferred style).
+* Avoid "unnecessary function wrapping": prefer \verb|val g = f|valg=f over \verb|fun g x = f x|fungx=fx and \verb|fun f x = g|funfx=g rather than \verb|fun f x y = g y|funfxy=gy.
+* Clearly understand the type signature of the functions \verb|map|map and \verb|filter|filter.
+* Study and understand the mechanics of lexical scope. It is important.
+* Understand the difference between functions and closures.
+* Think about why lexical scope is so important when dealing with "higher-order-functions".
+* Always look at the type signatures of your functions and think about how they make sense.
+* A type signature like \verb|'a -> 'b -> 'c|’a->’b->’c should be read as \verb|'a -> ('b -> 'c)|’a->(’b->’c).
+* You can use closures to avoid recomputation of expressions that don't change with each call.
+* Study and understand the type of \verb|fold|fold.
+* \verb|fold|fold allows separating recursive traversal from the data processing.
+* Currying is another idiom for achieving the concept of multi-argument functions, and it allows callers to provide only some of the arguments, creating a function that takes the remaining ones.
+* Study the \verb|curry|curry and \verb|uncurry|uncurry methods.
+* SML's \verb|foldl|foldl function has a slightly different form than the \verb|fold|fold presented in class.
+* Sometimes \verb|val f1 = f2 x|valf1=f2x leads to "value-restriction" errors. If you encounter this, doing \verb|fun f1 y = f2 x y|funf1y=f2xy, which is normally "unnecessary" function wrapping, is a fine workaround.

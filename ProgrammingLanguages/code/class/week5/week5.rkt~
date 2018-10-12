@@ -1,0 +1,5 @@
+#lang racket
+(provide (all-defined-out))
+
+(define c1 (cons 1 2))
+(define c2 (cons 1 (cons 2 null)))
