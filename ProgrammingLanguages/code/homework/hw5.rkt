@@ -143,7 +143,14 @@
 
 ;; Problem 4
 
-(define mupl-map "")
+(define (mupl-map afun)
+  (letrec ([cfun (lambda (lst)
+                   (if (null? lst)
+                       null
+                       (cons (afun (car lst)) (cfun (cdr lst) afun))))])
+    cfun))
+           
+                  
 
 (define mupl-mapAddN 
   (mlet "map" mupl-map
