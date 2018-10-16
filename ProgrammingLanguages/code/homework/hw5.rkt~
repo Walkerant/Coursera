@@ -49,7 +49,6 @@
   (cond [(var? e) 
          (envlookup env (var-string e))]
         [(int? e) e]
-        [(closure? e) e]
         [(add? e) 
          (let ([v1 (eval-under-env (add-e1 e) env)]
                [v2 (eval-under-env (add-e2 e) env)])
@@ -58,50 +57,33 @@
                (int (+ (int-num v1) 
                        (int-num v2)))
                (error "MUPL addition applied to non-number")))]
-        [(fun? e)
-         (if (not (fun-nameopt e))
-             (closure env (fun-body e)) ;anonymous function
-             (let* ([fun-name (fun-nameopt e)]
-                    [new-var-fun (cons fun-name (fun-body e))])
-               (closure (cons new-var-fun env) (fun-body e))))]
-        [(call? e)
-         (let* ([closure-body (call-funexp e)]
-                [closure-fun-body (closure-fun closure-body)]
-                [fun-body (fun-body closure-fun-body)]
-                [closure-env (closure-env closure-body)]
-                [fun-var-name (fun-formal closure-fun-body)]
-                [fun-var-value (call-actual e)]
-                [new-var (cons fun-var-name fun-var-value)])
-           (if (closure? closure-body)
-               (eval-under-env fun-body (cons new-var closure-env))
-               (error "call expected closure")))]
         [(ifgreater? e)
          (let ([t1 (eval-under-env (ifgreater-e1 e) env)]
                [t2 (eval-under-env (ifgreater-e2 e) env)])
            (if (and (int? t1)
                     (int? t2))
                (if (> (int-num t1)
-                      (int-num t2))
+                       (int-num t2))
                    (eval-under-env (ifgreater-e3 e) env)
                    (eval-under-env (ifgreater-e4 e) env))
                (error "both e1 and e2 should be int")))]
         [(mlet? e)
-         (let* ([var-name (mlet-var e)]
+         (let* ([var-name (var (mlet-var e))]
                 [var-value (eval-under-env (mlet-e e) env)]
                 [new-var (cons var-name var-value)]
                 [body (mlet-body e)])
            (eval-under-env body (cons new-var env)))]
         [(apair? e)
-         (let ([p1 (eval-under-env (apair-e1 e) env)]
-               [p2 (eval-under-env (apair-e2 e) env)])
+         (let ([p1 (eval-under-env (apair-e1) env)]
+               [p2 (eval-under-env (apair-e2) env)])
            (apair p1 p2))]
         [(fst? e)
-         (let ([eval-e (eval-under-env (fst-e e) env)])
+         (let ([eval-e (eval-under-env (fst-e e))])
            (if (apair? eval-e)
                (apair-e1 eval-e)
                (error "fst expected a pair")))]
         [(snd? e)
-         (let ([eval-e (eval-under-env (snd-e e) env)])
+         (let ([eval-e (eval-under-env (snd-e e))])
            (if (apair? eval-e)
                (apair-e2 eval-e)
                (error "snd expected a pair")))]
@@ -110,40 +92,22 @@
              (int 1)
              (int 0))]
         [#t (error (format "bad MUPL expression: ~v" e))]))
-
+(define en (cons (cons (var "x") (int 2)) null))
 ;; Do NOT change
 (define (eval-exp e)
   (eval-under-env e null))
         
 ;; Problem 3
 
-(define (ifaunit e1 e2 e3)
-  (if (aunit? (eval-exp e1)) (eval-exp e2) (eval-exp e3)))
+(define (ifaunit e1 e2 e3) "CHANGE")
 
-(define (mlet* lstlst e2)
-  (letrec ([generate-env (lambda (lst)
-                           (let ([f (lambda (p)
-                                      (let* ([var-name (car p)]
-                                             [var-value (eval-exp (cdr p))])
-                                        (cons var-name var-value)))])
-                             (if (null? lst)
-                                 null
-                                 (cons (f (car lst)) (generate-env (cdr lst))))))])
-    (eval-under-env e2 (generate-env lstlst))))
-                      
-(define (ifeq e1 e2 e3 e4)
-  (let ([v1 (eval-exp e1)]
-        [v2 (eval-exp e2)]
-        [v3 (eval-exp e3)]
-        [v4 (eval-exp e4)])
-    (if (and (and (int? v1) (int? v2))
-             (= (int-num v1) (int-num v2)))
-        v3
-        v4)))
+(define (mlet* lstlst e2) "CHANGE")
+
+(define (ifeq e1 e2 e3 e4) "CHANGE")
 
 ;; Problem 4
 
-(define mupl-map "")
+(define mupl-map "CHANGE")
 
 (define mupl-mapAddN 
   (mlet "map" mupl-map
