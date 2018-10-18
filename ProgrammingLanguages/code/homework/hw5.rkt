@@ -48,8 +48,11 @@
 (define (eval-under-env e env)
   (cond [(var? e) 
          (envlookup env (var-string e))]
+        ; values
+        [(aunit? e) e]
         [(int? e) e]
         [(closure? e) e]
+        ; add
         [(add? e) 
          (let ([v1 (eval-under-env (add-e1 e) env)]
                [v2 (eval-under-env (add-e2 e) env)])
@@ -58,23 +61,24 @@
                (int (+ (int-num v1) 
                        (int-num v2)))
                (error "MUPL addition applied to non-number")))]
+        ; function
         [(fun? e)
-         (if (not (fun-nameopt e))
-             (closure env (fun-body e)) ;anonymous function
-             (let* ([fun-name (fun-nameopt e)]
-                    [new-var-fun (cons fun-name (fun-body e))])
-               (closure (cons new-var-fun env) (fun-body e))))]
+         (closure env e)]
+        ; call
         [(call? e)
-         (let* ([closure-body (call-funexp e)]
-                [closure-fun-body (closure-fun closure-body)]
-                [fun-body (fun-body closure-fun-body)]
-                [closure-env (closure-env closure-body)]
-                [fun-var-name (fun-formal closure-fun-body)]
-                [fun-var-value (call-actual e)]
-                [new-var (cons fun-var-name fun-var-value)])
-           (if (closure? closure-body)
-               (eval-under-env fun-body (cons new-var closure-env))
-               (error "call expected closure")))]
+         (let ([curclosure (eval-under-env (call-funexp e) env)]) ; first evaluate the closure
+           (if (closure? curclosure) ; if it's not calling a closure, it's an error
+               (let ([locenv (closure-env curclosure)]
+                     [funexp (closure-fun curclosure)]
+                     [param (eval-under-env (call-actual e) env)])
+                 (eval-under-env
+                  (fun-body funexp) ; if it's okay, it evaluates the body of the function
+                  (if (fun-nameopt funexp)
+                      (cons (cons (fun-nameopt funexp) curclosure) ; with its name bound to the whole closure
+                            (cons (cons (fun-formal funexp) param) locenv)) ; and argument bound to the parameter
+                      (cons (cons (fun-formal funexp) param) locenv))))
+               (error "MUPL call applied to non-closure")))]
+        ; ifgreater
         [(ifgreater? e)
          (let ([t1 (eval-under-env (ifgreater-e1 e) env)]
                [t2 (eval-under-env (ifgreater-e2 e) env)])
@@ -84,27 +88,32 @@
                       (int-num t2))
                    (eval-under-env (ifgreater-e3 e) env)
                    (eval-under-env (ifgreater-e4 e) env))
-               (error "both e1 and e2 should be int")))]
+               (error "MUPL ifgreater both e1 and e2 should be int")))]
+        ; mlet
         [(mlet? e)
          (let* ([var-name (mlet-var e)]
                 [var-value (eval-under-env (mlet-e e) env)]
                 [new-var (cons var-name var-value)]
                 [body (mlet-body e)])
            (eval-under-env body (cons new-var env)))]
+        ; apair
         [(apair? e)
          (let ([p1 (eval-under-env (apair-e1 e) env)]
                [p2 (eval-under-env (apair-e2 e) env)])
            (apair p1 p2))]
+        ; fst
         [(fst? e)
          (let ([eval-e (eval-under-env (fst-e e) env)])
            (if (apair? eval-e)
                (apair-e1 eval-e)
-               (error "fst expected a pair")))]
+               (error "MUPL fst expected a pair")))]
+        ;snd
         [(snd? e)
          (let ([eval-e (eval-under-env (snd-e e) env)])
            (if (apair? eval-e)
                (apair-e2 eval-e)
-               (error "snd expected a pair")))]
+               (error "MUPL snd expected a pair")))]
+        ; isaunit
         [(isaunit? e)
          (if (aunit? (eval-under-env (isaunit-e e) env))
              (int 1)
@@ -118,43 +127,36 @@
 ;; Problem 3
 
 (define (ifaunit e1 e2 e3)
-  (if (aunit? (eval-exp e1)) (eval-exp e2) (eval-exp e3)))
+  (ifgreater (isaunit e1) (int 0) e2 e3))
 
 (define (mlet* lstlst e2)
-  (letrec ([generate-env (lambda (lst)
-                           (let ([f (lambda (p)
-                                      (let* ([var-name (car p)]
-                                             [var-value (eval-exp (cdr p))])
-                                        (cons var-name var-value)))])
-                             (if (null? lst)
-                                 null
-                                 (cons (f (car lst)) (generate-env (cdr lst))))))])
-    (eval-under-env e2 (generate-env lstlst))))
+  (if (null? lstlst)
+      e2
+      (mlet (car (car lstlst)) (cdr (car lstlst))
+            (mlet* (cdr lstlst) e2))))
                       
 (define (ifeq e1 e2 e3 e4)
-  (let ([v1 (eval-exp e1)]
-        [v2 (eval-exp e2)]
-        [v3 (eval-exp e3)]
-        [v4 (eval-exp e4)])
-    (if (and (and (int? v1) (int? v2))
-             (= (int-num v1) (int-num v2)))
-        v3
-        v4)))
-
+  (mlet* (list (cons "_x" e1) (cons "_y" e2))
+         (ifgreater (var "_x")
+                    (var "_y")
+                    e4
+                    (ifgreater (var "_y") (var "_x") e4 e3))))
 ;; Problem 4
 
-(define (mupl-map afun)
-  (letrec ([cfun (lambda (lst)
-                   (if (null? lst)
-                       null
-                       (cons (afun (car lst)) (cfun (cdr lst) afun))))])
-    cfun))
-           
-                  
-
+(define mupl-map
+  (fun #f "function"
+       (fun "mapfunc" "mupllst"
+            (ifaunit (var "mupllst")
+                     (aunit)
+                     (apair (call (var "function") (fst (var "mupllst")))
+                            (call (var "mapfunc") (snd (var "mupllst"))))))))
+ 
 (define mupl-mapAddN 
   (mlet "map" mupl-map
-        "CHANGE (notice map is now in MUPL scope)"))
+        (fun #f "increment"
+             (call (var "map")
+                   (fun #f "curnum" (add (var "increment")
+                                         (var "curnum")))))))
 
 ;; Challenge Problem
 
